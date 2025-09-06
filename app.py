@@ -150,6 +150,27 @@ def apply_formatting(worksheet, df):
                 pass
         adjusted_width = (max_length + 2) * 1.2
         worksheet.column_dimensions[column_letter].width = min(adjusted_width, 25)
+    # Define color fills
+    ce_bep_fill = PatternFill(start_color='FFD966', end_color='FFD966', fill_type='solid')  # Light Orange
+    pe_bep_fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')  # Light Green
+
+    # Top 3 indices of each metric
+    top_ce_oi_chg_idx = set(df['CE OI CHANGE'].nlargest(4).index.tolist())
+    top_ce_money_idx = set(df['CE MONEY'].nlargest(4).index.tolist())
+    top_pe_oi_chg_idx = set(df['PE OI CHANGE'].nlargest(4).index.tolist())
+    top_pe_money_idx = set(df['PE MONEY'].nlargest(4).index.tolist())
+
+    # Intersections for coloring
+    top_ce_indices = top_ce_oi_chg_idx.intersection(top_ce_money_idx)
+    top_pe_indices = top_pe_oi_chg_idx.intersection(top_pe_money_idx)
+
+    # Color CE BEP cells
+    for idx in top_ce_indices:
+        worksheet.cell(row=idx + 2, column=5).fill = ce_bep_fill  # CE BEP is column D
+
+    # Color PE BEP cells
+    for idx in top_pe_indices:
+        worksheet.cell(row=idx + 2, column=9).fill = pe_bep_fill  # PE BEP is column I
 
     return worksheet
 
@@ -157,18 +178,13 @@ def apply_formatting(worksheet, df):
 def style_dataframe_for_preview(df):
     styled_df = df.style
 
-    # Define exact color scale mappings used in Excel export
-    # CE OI CHANGE and PE OI CHANGE: min → light blue, mid (0) → white, max → dark blue
+    # Exact color scale mappings used in Excel export
     cmap_oi_change = mcolors.LinearSegmentedColormap.from_list(
         "oi_change", ['#F8696B', '#FFEB84', '#63BE7B']
     )
-
-    # CE OI and PE OI: min → light beige, mid (50th percentile) → orange, max → dark brown
     cmap_oi = mcolors.LinearSegmentedColormap.from_list(
         "oi", ['#FFF2CC', '#F4B183', '#786C3B']
     )
-
-    # CE MONEY and PE MONEY: min → light red, mid (0) → yellow, max → green
     cmap_money = mcolors.LinearSegmentedColormap.from_list(
         "money", ['#9DC3E6', '#FFFFFF', '#1F4E79']
     )
@@ -189,7 +205,28 @@ def style_dataframe_for_preview(df):
                 subset=[col]
             )
 
+    # Top 3 indices of each metric
+    top_ce_oi_chg_idx = set(df['CE OI CHANGE'].nlargest(4).index.tolist())
+    top_ce_money_idx = set(df['CE MONEY'].nlargest(4).index.tolist())
+    top_pe_oi_chg_idx = set(df['PE OI CHANGE'].nlargest(4).index.tolist())
+    top_pe_money_idx = set(df['PE MONEY'].nlargest(4).index.tolist())
+
+    top_ce_indices = top_ce_oi_chg_idx.intersection(top_ce_money_idx)
+    top_pe_indices = top_pe_oi_chg_idx.intersection(top_pe_money_idx)
+
+    # Apply custom highlight
+    def highlight_bep(row):
+        styles = ['' for _ in row]
+        if row.name in top_ce_indices:
+            styles[df.columns.get_loc('CE BEP')] = 'background-color: #FFD966'  # Light orange
+        if row.name in top_pe_indices:
+            styles[df.columns.get_loc('PE BEP')] = 'background-color: #C6EFCE'  # Light green
+        return styles
+
+    styled_df = styled_df.apply(highlight_bep, axis=1)
+
     return styled_df
+
 
 def main():
     st.title("📊 Option Chain Formatter")
