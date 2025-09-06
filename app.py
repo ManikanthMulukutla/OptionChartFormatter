@@ -156,9 +156,22 @@ def apply_formatting(worksheet, df):
 
 def style_dataframe_for_preview(df):
     styled_df = df.style
-    cmap_oi_change = mcolors.LinearSegmentedColormap.from_list("oi_change", ['#9DC3E6', '#FFFFFF', '#1F4E79'])
-    cmap_oi = mcolors.LinearSegmentedColormap.from_list("oi", ['#FFF2CC', '#F4B183', '#8B4513'])
-    cmap_money = mcolors.LinearSegmentedColormap.from_list("money", ['#F8696B', '#FFEB84', '#63BE7B'])
+
+    # Define exact color scale mappings used in Excel export
+    # CE OI CHANGE and PE OI CHANGE: min → light blue, mid (0) → white, max → dark blue
+    cmap_oi_change = mcolors.LinearSegmentedColormap.from_list(
+        "oi_change", ['#F8696B', '#FFEB84', '#63BE7B']
+    )
+
+    # CE OI and PE OI: min → light beige, mid (50th percentile) → orange, max → dark brown
+    cmap_oi = mcolors.LinearSegmentedColormap.from_list(
+        "oi", ['#FFF2CC', '#F4B183', '#786C3B']
+    )
+
+    # CE MONEY and PE MONEY: min → light red, mid (0) → yellow, max → green
+    cmap_money = mcolors.LinearSegmentedColormap.from_list(
+        "money", ['#9DC3E6', '#FFFFFF', '#1F4E79']
+    )
 
     columns_to_style = {
         'CE OI CHANGE': cmap_oi_change,
@@ -171,10 +184,12 @@ def style_dataframe_for_preview(df):
 
     for col, cmap in columns_to_style.items():
         if col in df.columns:
-            styled_df = styled_df.background_gradient(cmap=cmap, subset=[col])
+            styled_df = styled_df.background_gradient(
+                cmap=cmap,
+                subset=[col]
+            )
 
     return styled_df
-
 
 def main():
     st.title("📊 Option Chain Formatter")
