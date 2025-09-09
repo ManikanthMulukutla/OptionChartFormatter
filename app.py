@@ -52,17 +52,17 @@ def process_option_chain(df):
 
         out = pd.DataFrame()
         out["Time"] = time_s
-        out["CE OI CHANGE"] = ce_oi_chg_s
-        out["CE OI"] = ce_oi_s
-        out["CE MONEY"] = ((out["CE OI CHANGE"] * ce_vwap_s) / 10_000_000).round(0)
-        out["CE BEP"] = (strike_s + ce_vwap_s).round(0)
-        out["CE VWAP"] = ce_vwap_s
-        out["Strike Price"] = strike_s
-        out["PE VWAP"] = pe_vwap_s
-        out["PE BEP"] = (strike_s - pe_vwap_s).round(0)
-        out["PE MONEY"] = ((pe_oi_chg_s * pe_vwap_s) / 10_000_000).round(0)
-        out["PE OI"] = pe_oi_s
-        out["PE OI CHANGE"] = pe_oi_chg_s
+        out["CE OI CHANGE"] = ce_oi_chg_s.fillna(0)
+        out["CE OI"] = ce_oi_s.fillna(0)
+        out["CE MONEY"] = (out["CE OI CHANGE"] * ce_vwap_s.fillna(0))
+        out["CE BEP"] = (strike_s.fillna(0) + ce_vwap_s.fillna(0)).round(2)
+        out["CE VWAP"] = ce_vwap_s.fillna(0)
+        out["Strike Price"] = strike_s.fillna(0)
+        out["PE VWAP"] = pe_vwap_s.fillna(0)
+        out["PE BEP"] = (strike_s.fillna(0) - pe_vwap_s.fillna(0)).round(2)
+        out["PE MONEY"] = (pe_oi_chg_s.fillna(0) * pe_vwap_s.fillna(0))
+        out["PE OI"] = pe_oi_s.fillna(0)
+        out["PE OI CHANGE"] = pe_oi_chg_s.fillna(0)
 
         final_order = [
             "Time",
